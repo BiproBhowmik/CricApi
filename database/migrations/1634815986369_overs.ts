@@ -6,12 +6,7 @@ export default class Overs extends BaseSchema {
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table
-        .integer('user_id') //bowler id
-        .unsigned()
-        .references('users.id')
-        .onDelete('CASCADE') // delete post when user is deleted
-        .notNullable()
+      table.integer('over_number').notNullable()
         // table
         // .integer('innings_id')
         // .unsigned()

@@ -8,7 +8,7 @@ export default class Over extends BaseModel {
   public id: number
 
   @column()
-  public userId: number
+  public over_number: number
   
   // @column()
   // public inningsId: string

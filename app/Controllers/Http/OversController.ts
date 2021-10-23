@@ -1,51 +1,37 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 import Over from 'App/Models/Over'
 
 export default class OversController {
-
   public async store({ request }: HttpContextContract) {
     /**
      * Schema definition
      */
     const newUserSchema = schema.create({
-      bowler_id: schema.number()
+      over_number: schema.number(),
     })
 
     const payload = await request.validate({
       schema: newUserSchema,
       messages: {
-        'bowler_id.required': 'bowler_id is Required',
-      }
+        'over_number.required': 'over_number is Required',
+      },
     })
 
     let obj = {
-      userId: payload.bowler_id,
+      over_number: payload.over_number,
     }
     return Over.create(obj)
   }
+  public async overDetails({ request }: HttpContextContract) {
+    const id = request.input('id')
 
-  public async bowlerGivenRuns({request}: HttpContextContract) {
+    const overDetails = { 'overDetails':await Over.query().where('id', id).first()}
 
-    const query = await Over.query().preload('ball').where('user_id', request.all().id)
+    const overBallDetails = { 'overBallDetails' :await Database.from('balls').select().where('over_id', '=', id)}
 
-    // return query
-
-    let totoalRun = 0, totalBall = 0;
-
-    for await (const iterator of query) {
-
-      iterator.ball.forEach(element => {
-        totoalRun += element.run
-        totoalRun += element.extra
-        totalBall++
-      });
-    }
-
-    return {
-      "total_run": totoalRun,
-      "total_ball_throw": totalBall
-    }
+    return {...overDetails, ...overBallDetails}
   }
 }

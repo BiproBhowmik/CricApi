@@ -13,6 +13,8 @@ export default class Ball extends BaseModel {
   @column()
   public userId: number
   @column()
+  public bowlerId: number
+  @column()
   public run: number
   @column()
   public extra: number

@@ -18,6 +18,13 @@ export default class Balls extends BaseSchema {
         .references('users.id')
         .onDelete('CASCADE') // delete post when user is deleted
         .notNullable()
+        
+      table
+        .integer('bowler_id') //bowler id
+        .unsigned()
+        .references('users.id')
+        .onDelete('CASCADE') // delete post when user is deleted
+        .notNullable()
       table.integer('run').notNullable()
       table.integer('extra').nullable()
       table.float('speed').notNullable()

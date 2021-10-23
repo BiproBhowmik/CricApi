@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
+import Database from '@ioc:Adonis/Lucid/Database'
 import Ball from 'App/Models/Ball'
 
 export default class BallsController {
@@ -10,6 +11,7 @@ export default class BallsController {
     const newUserSchema = schema.create({
       over_id: schema.number(),
       batsman_id: schema.number(),
+      bowler_id: schema.number(),
       run: schema.number(),
       speed: schema.number(),
         ball_type: schema.string({ escape: true,
@@ -21,6 +23,7 @@ export default class BallsController {
       schema: newUserSchema,
       messages: {
         'batsman_id.required': 'batsman_id is Required',
+        'bowler_id.required': 'bowler_id is Required',
         'over_id.required': 'over_id is Required',
         'run.required': 'run is Required',
         'speed.required': 'speed is Required',
@@ -31,6 +34,7 @@ export default class BallsController {
     let obj = {
       overId: payload.over_id,
       userId: payload.batsman_id,
+      bowler_id: payload.bowler_id,
       run: payload.run,
       extra: request.all().extra,
       speed: payload.speed,
@@ -44,22 +48,46 @@ export default class BallsController {
     return Ball.create(obj)
   }
 
-  public async gottenRunFacedBall({request}: HttpContextContract) {
-
-    const query = await Ball.query().select('run').where('user_id', request.all().id)
-
-    let totoalRun = 0
-
-    for await (const iterator of query) {
-      totoalRun += iterator.run
-    }
-
-    return {
-      "total_run": totoalRun,
-      "total_ball_faced": query.length
-    }
-  }
   public async ballDetails({request}: HttpContextContract) {
-    return Ball.query().where('id', request.all().id).first()
+    
+    const id = request.all().id
+
+    var quearyArray = []
+
+    const ballDetails = await Database
+    .from('balls')
+    .select().where('balls.id', id)
+    .first()
+
+    quearyArray.push({'ballDetails':ballDetails})
+
+    const batsman = {'batsman': await Database
+    .from('users')
+    .select().where('users.id', ballDetails.user_id)
+    .first()}
+    quearyArray.push(batsman)
+    
+    const bowler = {'bowler': await Database
+    .from('users')
+    .select().where('users.id', ballDetails.bowler_id)
+    .first()}
+    quearyArray.push(bowler)
+
+    if (ballDetails.halper_id) {
+      const halper = {'halper': await Database
+      .from('users')
+      .select().where('users.id', ballDetails.halper_id)
+      .first()}
+      quearyArray.push(halper)
+    }
+    if (ballDetails.out_player_id) {
+      const out_player = {'out_player': await Database
+      .from('users')
+      .select().where('users.id', ballDetails.out_player_id)
+      .first()}
+      quearyArray.push(out_player)
+    }
+
+    return quearyArray
   }
 }

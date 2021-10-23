@@ -3,6 +3,7 @@ import { schema,rules } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
 
 import User from 'App/Models/User'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 export default class UsersController {
   public async store({ request }: HttpContextContract) {
@@ -123,13 +124,51 @@ export default class UsersController {
   }
 
   public async show({request}: HttpContextContract) {
-    return User.query()
-      .preload('over', (overQuery) => {
-        overQuery.preload('ball', (ballQuery) => {
-          ballQuery.preload('user')
-        })
-      })
-      .where('id', request.all().id)
+
+    const id = request.input('id')
+
+    var quearyArray = []
+
+    const userDetails = await User.query().where('id', id).first()
+
+    const batsmanDetails = await Database
+    .from('balls')
+    .select()
+    .sum('run':'total_run')
+    .avg('run':'avg_run_per_ball')
+    .count('id':'total_ball_faced')
+  .where('user_id', '=', id).first()
+  
+  const strikeRate = {'strikeRate':batsmanDetails.avg_run_per_ball * 100}
+  const four = await Database.from('balls').select().count('run':'4s').where('run','=',4).andWhere('user_id', '=', id).first()
+  const six = await Database.from('balls').select().count('run':'6s').where('run','=',6).andWhere('user_id', '=', id).first()
+  
+  const battingDetails = {...batsmanDetails, ...four, ...six, ...strikeRate}
+
+    const bowlerDetails = await Database
+    .from('balls')
+    .select()
+    .sum('run':'total_run')
+    .sum('extra':'total_extra_run')
+    .avg('run':'avg_run_per_ball')
+    .avg('speed':'avg_speed')
+    .count('id':'total_ball_do')
+    .where('bowler_id', '=', id).first()
+  
+  const econmy_rate = {'econmy_rate':(bowlerDetails.total_run + bowlerDetails.total_extra_run)
+                         / ((1/6)*bowlerDetails.total_ball_do)}
+  const total_wicket = await Database.from('balls').select().count('out_type':'total_wicket')
+                        .where('out_type','!=', 'Not-Out')
+                        .where('out_type','!=', 'Stamping')
+                        .andWhere('bowler_id', '=', id).first()
+
+  const bowlingDetails = {...bowlerDetails, ...econmy_rate, ...total_wicket}
+
+  quearyArray.push({'userDetails': userDetails})
+  quearyArray.push({'battingDetails': battingDetails})
+  quearyArray.push({'bowlingDetails': bowlingDetails})
+
+  return quearyArray
   }
 
 }

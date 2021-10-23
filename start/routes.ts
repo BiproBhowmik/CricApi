@@ -26,24 +26,18 @@ Route.get('/', async () => {
 
 
 Route.post('/storeUser', 'UsersController.store') //store user
-Route.post('/showUser', 'UsersController.show') //show a specific user full details with batting and bowling details  by id
 
 //over storing
 Route.post('/storeOver', 'OversController.store')
 
-
-
 //ball storing
 Route.post('/storeBall', 'BallsController.store')
 
-
-
-//1. how many runs a better got and ball faced
-Route.post('/gottenRunFacedBall', 'BallsController.gottenRunFacedBall')
-
-//2. how many runs a bowler gave and how many balls do
-Route.post('/bowlerGivenRuns', 'OversController.bowlerGivenRuns')
-
-//3. ball by ball analysis scoring.. kun dike koto run
+//every ball details by id
 Route.post('/ballDetails', 'BallsController.ballDetails')
 
+//show a specific user full details with batting and bowling strategy details by id
+Route.post('/showUser', 'UsersController.show') 
+
+//specific over details with ball to ball by id
+Route.post('/overDetails', 'OversController.overDetails')
