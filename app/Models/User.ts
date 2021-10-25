@@ -1,9 +1,12 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeSave, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, beforeSave, column, hasMany, HasMany, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import Over from 'App/Models/Over'
 import Hash from '@ioc:Adonis/Core/Hash'
+import Ball from './Ball'
 
 export default class User extends BaseModel {
+  public serializeExtras = true
+
   @column({ isPrimary: true })
   public id: number
 
@@ -35,7 +38,7 @@ export default class User extends BaseModel {
   public gender: string
   @column()
   public hair_style: string
-  @column()
+  @column({ serializeAs: null })
   public password: string
   @column()
   public email: string
@@ -63,4 +66,18 @@ export default class User extends BaseModel {
 
   @hasMany(() => Over)
   public over: HasMany<typeof Over>
+
+  
+  @hasOne(() => Ball, {
+    foreignKey: 'userId', // userId column on "Post" model
+  })
+  public batsman: HasOne<typeof Ball>
+
+  @hasOne(() => Ball, {
+    foreignKey: 'bowlerId', // userId column on "Post" model
+  })
+  public bowler: HasOne<typeof Ball>
+
+
+
 }

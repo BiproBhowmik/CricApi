@@ -1,6 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
-import Database from '@ioc:Adonis/Lucid/Database'
 import Ball from 'App/Models/Ball'
 
 export default class BallsController {
@@ -52,42 +51,12 @@ export default class BallsController {
     
     const id = request.all().id
 
-    var quearyArray = []
-
-    const ballDetails = await Database
-    .from('balls')
-    .select().where('balls.id', id)
-    .first()
-
-    quearyArray.push({'ballDetails':ballDetails})
-
-    const batsman = {'batsman': await Database
-    .from('users')
-    .select().where('users.id', ballDetails.user_id)
-    .first()}
-    quearyArray.push(batsman)
-    
-    const bowler = {'bowler': await Database
-    .from('users')
-    .select().where('users.id', ballDetails.bowler_id)
-    .first()}
-    quearyArray.push(bowler)
-
-    if (ballDetails.halper_id) {
-      const halper = {'halper': await Database
-      .from('users')
-      .select().where('users.id', ballDetails.halper_id)
-      .first()}
-      quearyArray.push(halper)
-    }
-    if (ballDetails.out_player_id) {
-      const out_player = {'out_player': await Database
-      .from('users')
-      .select().where('users.id', ballDetails.out_player_id)
-      .first()}
-      quearyArray.push(out_player)
-    }
-
-    return quearyArray
+    return Ball.query()
+      .preload('batsman')
+      .preload('bowler')
+      .preload('helper')
+      .preload('outerPlayer')
+      .where('id', id)
+      .first()
   }
 }

@@ -29,7 +29,7 @@ export default class Ball extends BaseModel {
   @column()
   public out_type: string
   @column()
-  public halper_id: number
+  public halperId: number
   @column()
   public out_player_id: number
 
@@ -44,5 +44,22 @@ export default class Ball extends BaseModel {
   public over: BelongsTo<typeof Over>
 
   @belongsTo(() => User)
-  public user: BelongsTo<typeof User>
+  public batsman: BelongsTo<typeof User>
+
+  @belongsTo(() => User, {
+    foreignKey: 'halperId', // userId column on "Post" model
+  })
+  public helper: BelongsTo<typeof User>
+
+  @belongsTo(() => User, {
+    foreignKey: 'out_player_id', // userId column on "Post" model
+  })
+  public outerPlayer: BelongsTo<typeof User>
+
+  @belongsTo(() => User, {
+    foreignKey: 'bowlerId', // userId column on "Post" model
+  })
+  public bowler: BelongsTo<typeof User>
+
+
 }

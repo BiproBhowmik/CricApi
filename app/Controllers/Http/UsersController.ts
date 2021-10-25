@@ -1,9 +1,8 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { schema,rules } from '@ioc:Adonis/Core/Validator'
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
 
 import User from 'App/Models/User'
-import Database from '@ioc:Adonis/Lucid/Database'
 
 export default class UsersController {
   public async store({ request }: HttpContextContract) {
@@ -13,35 +12,63 @@ export default class UsersController {
      * Schema definition
      */
     const newUserSchema = schema.create({
-      sure_name: schema.string({ escape: true,
-        trim: true }),
-      middle_name: schema.string({ escape: true,
-        trim: true }),
-      last_name: schema.string({ escape: true,
-        trim: true }),
-      player_type: schema.string({ escape: true,
-        trim: true }),
-      idcard: schema.string({ escape: true,
-        trim: true }),
-      play_role: schema.string({ escape: true,
-        trim: true }),
-      batting_style: schema.string({ escape: true,
-        trim: true }),
-      bowling_style: schema.string({ escape: true,
-        trim: true }),
-      address: schema.string({ escape: true,
-        trim: true }),
-      dob: schema.string({ escape: true,
-        trim: true }),
-      hight: schema.string({ escape: true,
-        trim: true }),
+      sure_name: schema.string({
+        escape: true,
+        trim: true
+      }),
+      middle_name: schema.string({
+        escape: true,
+        trim: true
+      }),
+      last_name: schema.string({
+        escape: true,
+        trim: true
+      }),
+      player_type: schema.string({
+        escape: true,
+        trim: true
+      }),
+      idcard: schema.string({
+        escape: true,
+        trim: true
+      }),
+      play_role: schema.string({
+        escape: true,
+        trim: true
+      }),
+      batting_style: schema.string({
+        escape: true,
+        trim: true
+      }),
+      bowling_style: schema.string({
+        escape: true,
+        trim: true
+      }),
+      address: schema.string({
+        escape: true,
+        trim: true
+      }),
+      dob: schema.string({
+        escape: true,
+        trim: true
+      }),
+      hight: schema.string({
+        escape: true,
+        trim: true
+      }),
       weight: schema.number(),
-      gender: schema.string({ escape: true,
-        trim: true }),
-      hair_style: schema.string({ escape: true,
-        trim: true }),
-      password: schema.string({ escape: true,
-        trim: true }),
+      gender: schema.string({
+        escape: true,
+        trim: true
+      }),
+      hair_style: schema.string({
+        escape: true,
+        trim: true
+      }),
+      password: schema.string({
+        escape: true,
+        trim: true
+      }),
       email: schema.string({}, [
         rules.email({
           sanitize: true,
@@ -50,12 +77,18 @@ export default class UsersController {
         }),
         rules.unique({ table: 'users', column: 'email' }),
       ]),
-      phone: schema.string({ escape: true,
-        trim: true }),
-      country: schema.string({ escape: true,
-        trim: true }),
-      city: schema.string({ escape: true,
-        trim: true }),
+      phone: schema.string({
+        escape: true,
+        trim: true
+      }),
+      country: schema.string({
+        escape: true,
+        trim: true
+      }),
+      city: schema.string({
+        escape: true,
+        trim: true
+      }),
     })
 
     const payload = await request.validate({
@@ -97,7 +130,7 @@ export default class UsersController {
         name: imageName,
       })
     }
-    
+
     let obj = {
       email: payload.email,
       password: payload.password,
@@ -123,52 +156,75 @@ export default class UsersController {
     return User.create(obj)
   }
 
-  public async show({request}: HttpContextContract) {
+  public async show({ request }: HttpContextContract) {
 
     const id = request.input('id')
 
-    var quearyArray = []
+    let batsmanDetails = await User.query()
+      .where('id', id)
+      .withCount('batsman', (query) => {
+        query.sum('run').as('total_run')
+      })
+      .withCount('batsman', (query) => {
+        query.avg('run').as('avg_run_per_ball')
+      })
+      .withCount('batsman', (query) => {
+        query.count('id').as('total_ball_faced')
+      })
+      .withCount('batsman', (query) => {
+        query.count('id').as('4s').where('run', 4)
+      })
+      .withCount('batsman', (query) => {
+        query.count('id').as('6s').where('run', 6)
+      })
+      .firstOrFail()
 
-    const userDetails = await User.query().where('id', id).first()
 
-    const batsmanDetails = await Database
-    .from('balls')
-    .select()
-    .sum('run':'total_run')
-    .avg('run':'avg_run_per_ball')
-    .count('id':'total_ball_faced')
-  .where('user_id', '=', id).first()
-  
-  const strikeRate = {'strikeRate':batsmanDetails.avg_run_per_ball * 100}
-  const four = await Database.from('balls').select().count('run':'4s').where('run','=',4).andWhere('user_id', '=', id).first()
-  const six = await Database.from('balls').select().count('run':'6s').where('run','=',6).andWhere('user_id', '=', id).first()
-  
-  const battingDetails = {...batsmanDetails, ...four, ...six, ...strikeRate}
+    let bowlerDetails = await User.query()
+      .where('id', id)
+      .withCount('bowler', (query) => {
+        query.sum('run').as('total_given_run')
+      })
+      .withCount('bowler', (query) => {
+        query.sum('extra').as('total_given_extra_run')
+      })
+      .withCount('bowler', (query) => {
+        query.avg('run').as('avg_given_run_per_ball')
+      })
+      .withCount('bowler', (query) => {
+        query.avg('speed').as('avg_speed')
+      })
+      .withCount('bowler', (query) => {
+        query.count('id').as('total_ball_do')
+      })
+      .withCount('bowler', (query) => {
+        query.count('id').as('4s Hitted By Batsman').where('run', 4)
+      })
+      .withCount('bowler', (query) => {
+        query.count('id').as('6s Hitted By Batsman').where('run', 6)
+      })
+      .withCount('bowler', (query) => {
+        query.count('id').as('total_wicket')
+          .where('out_type', '!=', 'Not-Out').where('out_type', '!=', 'Stamping')
+      })
+      .firstOrFail()
 
-    const bowlerDetails = await Database
-    .from('balls')
-    .select()
-    .sum('run':'total_run')
-    .sum('extra':'total_extra_run')
-    .avg('run':'avg_run_per_ball')
-    .avg('speed':'avg_speed')
-    .count('id':'total_ball_do')
-    .where('bowler_id', '=', id).first()
-  
-  const econmy_rate = {'econmy_rate':(bowlerDetails.total_run + bowlerDetails.total_extra_run)
-                         / ((1/6)*bowlerDetails.total_ball_do)}
-  const total_wicket = await Database.from('balls').select().count('out_type':'total_wicket')
-                        .where('out_type','!=', 'Not-Out')
-                        .where('out_type','!=', 'Stamping')
-                        .andWhere('bowler_id', '=', id).first()
+    const econmy_rate = {
+      'econmy_rate': (bowlerDetails.serialize().meta.total_given_run +
+        bowlerDetails.serialize().meta.total_given_extra_run) / ((1 / 6) * bowlerDetails.serialize().meta.total_ball_do)
+    }
 
-  const bowlingDetails = {...bowlerDetails, ...econmy_rate, ...total_wicket}
+    const bowlingDetails = { ...bowlerDetails.serialize().meta, ...econmy_rate }
 
-  quearyArray.push({'userDetails': userDetails})
-  quearyArray.push({'battingDetails': battingDetails})
-  quearyArray.push({'bowlingDetails': bowlingDetails})
+    const strikeRate = { 'strikeRate': batsmanDetails.serialize().meta.avg_run_per_ball * 100 }
 
-  return quearyArray
+    let playerDetails = batsmanDetails.serialize()
+
+    const metaUpdated = { ...playerDetails.meta, ...strikeRate, ...bowlingDetails }
+
+    playerDetails.meta = metaUpdated
+
+    return playerDetails
   }
 
 }
