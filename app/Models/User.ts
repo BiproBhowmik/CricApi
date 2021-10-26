@@ -28,8 +28,15 @@ export default class User extends BaseModel {
   public bowling_style: string
   @column()
   public address: string
+
   @column()
   public dob: string
+  
+  // @column.date({
+  //   serialize: (value) => value.toFormat('dd LLL yyyy')
+  // })
+  // public dob: DateTime
+
   @column()
   public hight: string
   @column()
@@ -38,8 +45,10 @@ export default class User extends BaseModel {
   public gender: string
   @column()
   public hair_style: string
+
   @column({ serializeAs: null })
   public password: string
+
   @column()
   public email: string
   @column()

@@ -69,12 +69,13 @@ export default class UsersController {
         escape: true,
         trim: true
       }),
-      email: schema.string({}, [
-        rules.email({
-          sanitize: true,
-          ignoreMaxLength: false,
-          //domainSpecificValidation: true,
-        }),
+      email: schema.string({escape: true,
+        trim: true}, [
+        // rules.email({
+        //   // sanitize: true,
+        //   ignoreMaxLength: false,
+        //   //domainSpecificValidation: true,
+        // }),
         rules.unique({ table: 'users', column: 'email' }),
       ]),
       phone: schema.string({
